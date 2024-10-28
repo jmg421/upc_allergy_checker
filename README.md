@@ -2,12 +2,15 @@
 
 A Python application that scans UPC barcodes, retrieves product information, and flags any allergens based on the user's sensitivity profile.
 
+<img width="443" alt="image" src="https://github.com/user-attachments/assets/90275689-4360-4de9-b385-2f0c3729b0b0">
+
 ## Features
 
 - **UPC Scanning**: Input UPC codes via a barcode scanner or manually.
 - **Product Lookup**: Fetches product details and ingredients from the Open Food Facts API.
 - **Allergen Detection**: Flags products containing allergens the user is sensitive to.
 - **User-Friendly GUI**: Simple interface built with `tkinter`.
+- **Results Saved to Database**: All data that is scanned and looked up is stored in a Sqlite3 database (~/.upc_allergy_checker.db by default)
 
 ## Installation
 
