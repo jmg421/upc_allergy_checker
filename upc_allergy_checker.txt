@@ -1,0 +1,246 @@
+##### START ./requirements.txt #####
+requests>=2.25.1
+
+##### END ./requirements.txt #####
+##### START ./README.md #####
+# UPC Allergy Checker
+
+A Python application that scans UPC barcodes, retrieves product information, and flags any allergens based on the user's sensitivity profile.
+
+## Features
+
+- **UPC Scanning**: Input UPC codes via a barcode scanner or manually.
+- **Product Lookup**: Fetches product details and ingredients from the Open Food Facts API.
+- **Allergen Detection**: Flags products containing allergens the user is sensitive to.
+- **User-Friendly GUI**: Simple interface built with `tkinter`.
+
+## Installation
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/yourusername/upc_allergy_checker.git
+   cd upc_allergy_checker
+
+##### END ./README.md #####
+##### START ./concat.sh #####
+output_file="$(basename "$PWD").txt"
+
+find . \( -path "./venv" -o -path "./__pycache__" -o -name "$output_file" \) -prune -o -type f -print0 | \
+    xargs -0 -I {} sh -c '
+        if file --mime-type "$1" | grep -q "text/"; then
+            echo "##### START $1 #####"
+            cat "$1"
+            echo "##### END $1 #####"
+        fi
+    ' _ {} > "$output_file"
+
+##### END ./concat.sh #####
+##### START ./upc_allergy_checker/config.py #####
+# config.py
+
+# Open Food Facts API base URL
+API_BASE_URL = "https://world.openfoodfacts.org/api/v0/product/{}.json"
+
+# List of allergens Weston is sensitive to
+ALLERGENS = [
+    "garlic",
+    "peanut",
+    "pecan",
+    "walnut",
+    "sesame",
+    "cashew",
+    "almond",
+    "hazelnut",
+    "pistachio",
+    "soybean",
+    "soy",   # Common alternative
+    "soya",  # Common alternative
+]
+
+##### END ./upc_allergy_checker/config.py #####
+##### START ./upc_allergy_checker/__init__.py #####
+__version__ = "1.0.0"
+
+from .api import ProductAPI
+from .allergen import AllergenChecker
+from .gui import AllergyCheckerGUI
+##### END ./upc_allergy_checker/__init__.py #####
+##### START ./upc_allergy_checker/api.py #####
+# api.py
+
+import requests
+from typing import Optional, Tuple
+from .config import API_BASE_URL  # Corrected import
+
+class ProductAPI:
+    """Handles interactions with the Open Food Facts API."""
+
+    @staticmethod
+    def fetch_product(upc: str) -> Optional[Tuple[str, str]]:
+        """
+        Fetch product details using UPC code.
+
+        Args:
+            upc (str): The UPC code of the product.
+
+        Returns:
+            Optional[Tuple[str, str]]: Returns a tuple of (product_name, ingredients_text) if found, else None.
+        """
+        url = API_BASE_URL.format(upc)
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()  # Raise HTTPError for bad responses
+            data = response.json()
+            if data.get("status") == 1:
+                product = data.get("product", {})
+                product_name = product.get("product_name", "N/A")
+                ingredients_text = product.get("ingredients_text", "")
+                return product_name, ingredients_text
+            else:
+                return None
+        except requests.RequestException as e:
+            print(f"Error fetching product: {e}")
+            return None
+
+##### END ./upc_allergy_checker/api.py #####
+##### START ./upc_allergy_checker/allergen.py #####
+# allergen.py
+
+from typing import List
+from .config import ALLERGENS
+
+class AllergenChecker:
+    """Checks for allergens in product ingredients."""
+
+    def __init__(self, allergens: List[str] = ALLERGENS):
+        """
+        Initialize the AllergenChecker with a list of allergens.
+
+        Args:
+            allergens (List[str], optional): List of allergens. Defaults to ALLERGENS from config.
+        """
+        self.allergens = [allergen.lower() for allergen in allergens]
+
+    def check_allergens(self, ingredients: str) -> List[str]:
+        """
+        Check if any allergens are present in the ingredients.
+
+        Args:
+            ingredients (str): The ingredients text.
+
+        Returns:
+            List[str]: List of detected allergens.
+        """
+        detected = []
+        ingredients_lower = ingredients.lower()
+        for allergen in self.allergens:
+            if allergen in ingredients_lower:
+                detected.append(allergen.capitalize())
+        return detected
+
+##### END ./upc_allergy_checker/allergen.py #####
+##### START ./upc_allergy_checker/gui.py #####
+# gui.py
+
+import tkinter as tk
+from tkinter import messagebox, scrolledtext
+from .api import ProductAPI
+from .allergen import AllergenChecker
+
+class AllergyCheckerGUI:
+    """Graphical User Interface for the UPC Allergy Checker application."""
+
+    def __init__(self, root):
+        self.root = root
+        self.root.title("UPC Allergy Checker")
+        self.api = ProductAPI()
+        self.checker = AllergenChecker()
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        """Create and arrange GUI widgets."""
+        # UPC Input Frame
+        input_frame = tk.Frame(self.root)
+        input_frame.pack(pady=10)
+
+        upc_label = tk.Label(input_frame, text="Scan UPC:")
+        upc_label.pack(side=tk.LEFT, padx=5)
+
+        self.upc_entry = tk.Entry(input_frame, width=20, font=('Arial', 14))
+        self.upc_entry.pack(side=tk.LEFT, padx=5)
+        self.upc_entry.bind("<Return>", self.process_upc)  # Bind Enter key
+
+        # Fetch Button
+        fetch_button = tk.Button(self.root, text="Check Product", command=self.process_upc)
+        fetch_button.pack(pady=5)
+
+        # Result Display
+        self.result_text = scrolledtext.ScrolledText(self.root, width=60, height=20, state='disabled', wrap=tk.WORD)
+        self.result_text.pack(pady=10)
+
+    def process_upc(self, event=None):
+        """Handle UPC input, fetch product details, and check for allergens."""
+        upc = self.upc_entry.get().strip()
+        if not upc:
+            messagebox.showwarning("Input Error", "Please enter a UPC code.")
+            return
+
+        result = self.api.fetch_product(upc)
+        if result is None:
+            self.display_result("Product not found.\n")
+            messagebox.showerror("Error", "Product not found.")
+            return
+
+        product_name, ingredients = result
+        self.display_result(f"Product Name: {product_name}\n\nIngredients: {ingredients}\n\n")
+
+        allergens_found = self.checker.check_allergens(ingredients)
+        if allergens_found:
+            allergen_msg = "Allergens Detected:\n" + ", ".join(allergens_found)
+            self.display_result(allergen_msg)
+            messagebox.showerror("Allergen Alert", f"The following allergens were detected: {', '.join(allergens_found)}")
+        else:
+            self.display_result("No allergens detected.")
+            messagebox.showinfo("Safe", "No allergens detected in this product.")
+
+    def display_result(self, text: str):
+        """Display text in the result area."""
+        self.result_text.config(state='normal')
+        self.result_text.insert(tk.END, text + "\n")
+        self.result_text.config(state='disabled')
+        self.result_text.see(tk.END)  # Auto-scroll to the end
+
+##### END ./upc_allergy_checker/gui.py #####
+##### START ./main.py #####
+# main.py
+
+import tkinter as tk
+from upc_allergy_checker.gui import AllergyCheckerGUI
+
+def main():
+    root = tk.Tk()
+    app = AllergyCheckerGUI(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
+
+##### END ./main.py #####
+##### START ./test_tkinter.py #####
+import tkinter as tk
+from tkinter import messagebox
+
+def on_click():
+    messagebox.showinfo("Test", "tkinter is working!")
+
+root = tk.Tk()
+root.title("tkinter Test")
+
+test_button = tk.Button(root, text="Click Me", command=on_click)
+test_button.pack(pady=20)
+
+root.mainloop()
+
+##### END ./test_tkinter.py #####
