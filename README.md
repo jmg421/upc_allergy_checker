@@ -1,6 +1,6 @@
 # UPC Allergy Checker
 
-A Python application that scans UPC barcodes, retrieves product information, and flags any allergens based on the user's sensitivity profile.
+A Python application that scans UPC barcodes, retrieves product information, and flags any allergens based on the user's sensitivity profile.  Can be used with a variety of standard UPC scanners, e.g. the Tera Barcode Scanner at https://tera-digital.com/products/2d-barcode-scanner-hw0002 .
 
 <img width="443" alt="image" src="https://github.com/user-attachments/assets/90275689-4360-4de9-b385-2f0c3729b0b0">
 
