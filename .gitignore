@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# PyInstaller
+*.spec
+
+# Logs
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# Test cache
+.tox/
+.pytest_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+upc_allergy_checker.txt
+o1-preview.sh
+o1_preview.py
+
