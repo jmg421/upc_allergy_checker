@@ -2,14 +2,13 @@
 
 import argparse
 import logging
-from typing import List
-from .api import ProductAPI
-from .allergen import AllergenChecker
+from upc_allergy_checker.api import ProductAPI
+from upc_allergy_checker.allergen import AllergenChecker
 
 def main():
     parser = argparse.ArgumentParser(description='UPC Allergy Checker - Command Line Interface')
-    parser.add_argument('upc_codes', nargs='*', help='List of UPC codes to check')
-    parser.add_argument('-f', '--file', type=str, help='File containing UPC codes, one per line')
+    parser.add_argument('upc_codes', nargs='*', help='List of UPC codes or "UPC,Product Name" pairs to check')
+    parser.add_argument('-f', '--file', type=str, help='File containing "UPC,Product Name" pairs, one per line')
     parser.add_argument('-o', '--output', type=str, help='Output file to write the results')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     args = parser.parse_args()
@@ -22,46 +21,76 @@ def main():
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger(__name__)
 
-    # Collect UPC codes
-    upc_codes = args.upc_codes
+    records = []
+
+    # Process UPC codes from command line arguments
+    for item in args.upc_codes:
+        if not item.strip():
+            continue
+        upc, *product_name = item.strip().split(',', 1)
+        upc = upc.strip()
+        product_name = product_name[0].strip() if product_name else ''
+        records.append({'upc': upc, 'product_name': product_name})
 
     # Read UPC codes from file if specified
     if args.file:
         try:
             with open(args.file, 'r') as f:
-                file_upc_codes = [line.strip() for line in f if line.strip()]
-                upc_codes.extend(file_upc_codes)
+                for line in f:
+                    if not line.strip():
+                        continue
+                    upc, *product_name = line.strip().split(',', 1)
+                    upc = upc.strip()
+                    product_name = product_name[0].strip() if product_name else ''
+                    records.append({'upc': upc, 'product_name': product_name})
         except IOError as e:
             logger.error(f"Unable to read UPC codes from file {args.file}: {e}")
             return
 
-    # Remove duplicates
-    upc_codes = list(set(upc_codes))
-
-    if not upc_codes:
+    if not records:
         logger.error("No UPC codes provided.")
         parser.print_help()
         return
+
+    # Remove duplicates by UPC, keeping the first occurrence
+    unique_records = {}
+    for record in records:
+        upc = record['upc']
+        if upc not in unique_records:
+            unique_records[upc] = record
+        else:
+            # If existing record has no product_name, update it
+            if not unique_records[upc]['product_name'] and record['product_name']:
+                unique_records[upc]['product_name'] = record['product_name']
+
+    records = list(unique_records.values())
 
     api = ProductAPI()
     checker = AllergenChecker()
 
     results = []
 
-    for upc in upc_codes:
+    for record in records:
+        upc = record['upc']
+        provided_product_name = record['product_name']
         logger.info(f"Processing UPC: {upc}")
+
         result = api.fetch_product(upc)
         if result is None:
             logger.warning(f"Product not found for UPC: {upc}")
+            product_name = provided_product_name if provided_product_name else 'Product not found'
             results.append({
                 'upc': upc,
-                'product_name': 'Product not found',
+                'product_name': product_name,
                 'allergens': [],
                 'status': 'Product not found'
             })
             continue
 
-        product_name, ingredients = result
+        fetched_product_name, ingredients = result
+        # Use provided product name if available, else use fetched product name
+        product_name = provided_product_name if provided_product_name else fetched_product_name
+
         allergens_found = checker.check_allergens(ingredients)
         if allergens_found:
             status = f"Allergens detected: {', '.join(allergens_found)}"

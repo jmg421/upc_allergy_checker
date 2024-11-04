@@ -1,17 +1,17 @@
 # UPC Allergy Checker
 
-A Python application that scans UPC barcodes, retrieves product information, and flags any allergens based on the user's sensitivity profile.  Can be used with a variety of standard UPC scanners, e.g. the Tera Barcode Scanner at https://tera-digital.com/products/2d-barcode-scanner-hw0002 .
+A Python application that scans UPC barcodes, retrieves product information, and flags any allergens based on the user's sensitivity profile. Can be used with a variety of standard UPC scanners, e.g., the Tera Barcode Scanner at https://tera-digital.com/products/2d-barcode-scanner-hw0002.
 
 <img width="443" alt="image" src="https://github.com/user-attachments/assets/90275689-4360-4de9-b385-2f0c3729b0b0">
 <img height="443" alt="image" src="https://github.com/user-attachments/assets/bb5e184e-fa13-456b-9d31-513777270aea">
 
 ## Features
 
-- **UPC Scanning**: Input UPC codes via a barcode scanner or manually.
+- **Continuous Scanning**: Scan multiple UPC codes in succession without pop-up interruptions.
+- **Allergen Detection**: Automatically checks for allergens and displays results in the GUI.
 - **Product Lookup**: Fetches product details and ingredients from the Open Food Facts API.
-- **Allergen Detection**: Flags products containing allergens the user is sensitive to.
-- **User-Friendly GUI**: Simple interface built with `tkinter`.
-- **Results Saved to Database**: All data that is scanned and looked up is stored in a Sqlite3 database (~/.upc_allergy_checker.db by default)
+- **Results Display**: Displays all results in the GUI's result area for easy review.
+- **Results Saved to Database**: All scanned data is stored in an SQLite3 database (`~/.upc_allergy_checker.db` by default).
 
 ## Installation
 
@@ -56,6 +56,12 @@ Alternatively, if installed via pip, you can run:
 ```bash
 allergy_checker
 ```
+
+**Scanning UPC Codes:**
+
+- Ensure your cursor is focused on the "Scan UPC" entry field.
+- Use a barcode scanner to scan the UPC code, or manually enter it.
+- The application will automatically process the UPC code, display the results, and be ready for the next scan without any additional input.
 
 ## Configuration
 
