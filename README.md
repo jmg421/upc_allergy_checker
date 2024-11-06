@@ -11,14 +11,14 @@ A Python application that scans UPC barcodes, retrieves product information, and
 - **Allergen Detection**: Automatically checks for allergens and displays results in the GUI.
 - **Product Lookup**: Fetches product details and ingredients from the Open Food Facts API.
 - **Results Display**: Displays all results in the GUI's result area for easy review.
-- **Results Saved to Database**: All scanned data is stored in an SQLite3 database (`~/.upc_allergy_checker.db` by default).
+- **Results Saved to Database**: All scanned data is stored in an SQLite3 database (`~/upc_allergy_checker.db` by default).
 
 ## Installation
 
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/upc_allergy_checker.git
+   git clone https://github.com/jmg421/upc_allergy_checker.git
    cd upc_allergy_checker
    ```
 

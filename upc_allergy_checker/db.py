@@ -4,7 +4,7 @@ import sqlite3
 import os
 from typing import Optional, Tuple
 
-DB_PATH = os.path.expanduser("~/.upc_allergy_checker.db")
+DB_PATH = os.path.expanduser("~/upc_allergy_checker.db")
 
 class DatabaseManager:
     """Manages database operations."""
