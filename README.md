@@ -7,10 +7,12 @@ A Python application that scans UPC barcodes, retrieves product information, and
 
 ## Features
 
+- **Graphical User Interface (GUI)**: User-friendly interface for scanning and checking products.
+- **Command Line Interface (CLI)**: Check products directly from the terminal.
 - **Continuous Scanning**: Scan multiple UPC codes in succession without pop-up interruptions.
-- **Allergen Detection**: Automatically checks for allergens and displays results in the GUI.
+- **Allergen Detection**: Automatically checks for allergens and displays results.
 - **Product Lookup**: Fetches product details and ingredients from the Open Food Facts API.
-- **Results Display**: Displays all results in the GUI's result area for easy review.
+- **Results Display**: Displays all results in the GUI's result area or outputs to the terminal for review.
 - **Results Saved to Database**: All scanned data is stored in an SQLite3 database (`~/upc_allergy_checker.db` by default).
 
 ## Installation
@@ -45,7 +47,9 @@ A Python application that scans UPC barcodes, retrieves product information, and
 
 ## Usage
 
-Run the application using:
+### Graphical User Interface (GUI)
+
+Run the GUI application using:
 
 ```bash
 python -m upc_allergy_checker
@@ -63,9 +67,111 @@ allergy_checker
 - Use a barcode scanner to scan the UPC code, or manually enter it.
 - The application will automatically process the UPC code, display the results, and be ready for the next scan without any additional input.
 
+### Command Line Interface (CLI)
+
+The UPC Allergy Checker also includes a command line interface (CLI) that allows you to check products directly from the terminal.
+
+Run the CLI application using:
+
+```bash
+python -m upc_allergy_checker.cli [options] [upc_codes ...]
+```
+
+Alternatively, if installed via pip, you can run:
+
+```bash
+allergy_checker_cli [options] [upc_codes ...]
+```
+
+#### Options
+
+```bash
+$ python -m upc_allergy_checker.cli -h
+
+usage: cli.py [-h] [-f FILE] [-o OUTPUT] [-v] [upc_codes ...]
+
+UPC Allergy Checker - Command Line Interface
+
+positional arguments:
+  upc_codes            List of UPC codes or "UPC,Product Name" pairs to check
+
+options:
+  -h, --help           show this help message and exit
+  -f FILE, --file FILE
+                       File containing "UPC,Product Name" pairs, one per line
+  -o OUTPUT, --output OUTPUT
+                       Output file to write the results
+  -v, --verbose        Enable verbose output
+```
+
+#### Examples
+
+**Check a Single UPC Code:**
+
+```bash
+python -m upc_allergy_checker.cli 012345678905
+```
+
+**Check Multiple UPC Codes:**
+
+```bash
+python -m upc_allergy_checker.cli 012345678905 012345678906 012345678907
+```
+
+**Check UPC Codes from a File:**
+
+Create a text file `upc_list.txt` with one UPC code per line or "UPC,Product Name" pairs:
+
+```
+012345678905,Product A
+012345678906,Product B
+012345678907
+```
+
+Run the CLI with the file:
+
+```bash
+python -m upc_allergy_checker.cli -f upc_list.txt
+```
+
+**Save Output to a File:**
+
+```bash
+python -m upc_allergy_checker.cli 012345678905 -o results.txt
+```
+
+**Enable Verbose Output:**
+
+```bash
+python -m upc_allergy_checker.cli 012345678905 -v
+```
+
 ## Configuration
 
 The list of allergens can be modified in the `config.py` file within the `upc_allergy_checker` package.
+
+```python
+# config.py
+
+# Open Food Facts API base URL
+API_BASE_URL = "https://world.openfoodfacts.org/api/v0/product/{}.json"
+
+# List of allergens the user is sensitive to
+ALLERGENS = [
+    "garlic",
+    "peanut",
+    "pecan",
+    "walnut",
+    "sesame",
+    "cashew",
+    "almond",
+    "hazelnut",
+    "pistachio",
+    "soybean",
+    "soy",   # Common alternative
+    "soya",  # Common alternative
+]
+```
 
 ## Troubleshooting
 
